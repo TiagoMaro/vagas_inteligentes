@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregador de Vagas Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-6">
+        <header class="text-center my-12">
+            <h1 class="text-4xl font-extrabold text-indigo-600 mb-2">BuscaVagas Central</h1>
+            <p class="text-gray-500">Encontre sua oportunidade em múltiplos portais através de uma única busca</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="cargo" placeholder="Cargo ou Tecnologia (ex: Python, Estágio C#)" class="flex-1 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" id="local" placeholder="Cidade ou Remoto" class="flex-1 p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" value="Brasil">
+                <button onclick="realizarBusca()" class="bg-indigo-600 text-white px-6 py-3 rounded-md font-medium hover:bg-indigo-700 transition">Buscar Vagas</button>
+            </div>
+        </div>
+
+        <div id="resultados" class="space-y-4">
+            <p class="text-center text-gray-400">Digite o cargo desejado e clique em buscar para iniciar.</p>
+        </div>
+    </div>
+
+    <script>
+        async function realizarBusca() {
+            const cargo = document.getElementById('cargo').value;
+            const local = document.getElementById('local').value;
+            const container = document.getElementById('resultados');
+            
+            if (!cargo.trim()) {
+                alert("Por favor, digite um cargo ou tecnologia para pesquisar.");
+                return;
+            }
+            
+            container.innerHTML = '<p class="text-center text-gray-500 animate-pulse">Buscando vagas nas plataformas integradas...</p>';
+
+            try {
+                const response = await fetch(`/buscar?q=${cargo}&local=${local}`);
+                const vagas = await response.json();
+
+                container.innerHTML = '';
+
+                if(vagas.length === 0 || vagas.erro) {
+                    container.innerHTML = '<p class="text-center text-red-500 font-medium">Nenhuma vaga encontrada ou limite da API atingido.</p>';
+                    return;
+                }
+
+                vagas.forEach(vaga => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition";
+                    card.innerHTML = `
+                        <div>
+                            <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">${vaga.job_publisher || 'Web'}</span>
+                            <h2 class="text-xl font-bold mt-2 text-gray-900">${vaga.job_title}</h2>
+                            <p class="text-gray-600 font-medium mt-1">${vaga.employer_name} - ${vaga.job_city || local}</p>
+                            <p class="text-gray-400 text-sm mt-2 line-clamp-2">${vaga.job_description || 'Sem descrição disponível.'}</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
+                            <span class="text-sm text-gray-500">${vaga.job_employment_type || 'Não especificado'}</span>
+                            <a href="${vaga.job_apply_link}" target="_blank" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Ver Vaga original →</a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                container.innerHTML = '<p class="text-center text-red-500 font-medium">Erro crítico ao processar a busca no servidor backend.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

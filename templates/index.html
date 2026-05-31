@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregador de Vagas Hub</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/vagas-inteligentes-logo.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="light-blue text-gray-800">
+
+    <div class="max-w-7xl mx-auto p-6">
+        <header class="flex items-center justify-left gap-16 my-8">
+            <img src="{{ url_for('static', filename='images/vagas-inteligentes-tittle.png') }}"
+                alt="Titulo Vagas Inteligentes" class="w-64 h-auto">
+            <img src="{{ url_for('static', filename='images/vagas-inteligentes-logo.png') }}"
+                alt="Logo Vagas Inteligentes" class="w-32 h-auto">
+        </header>
+
+        <div
+            class="medium-blue p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row items-stretch justify-center gap-3">
+            <div role="button" tabindex="0" onclick="alternarModalFiltros(true)"
+                class="bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-gray-50 active:scale-95 transition-all shrink-0 self-center"
+                title="Filtros Avançados">
+                <img src="{{ url_for('static', filename='images/stash_filter.png') }}" alt="Filtros Avançados"
+                    class="w-6 h-6">
+            </div>
+
+            <div id="btn-limpar-filtros" role="button" tabindex="0" onclick="limparFiltros()"
+                class="w-12 h-12 rounded-full flex items-center justify-center shadow-md cursor-pointer active:scale-95 transition-all shrink-0 self-center hidden"
+                style="background-color: #E57979;" title="Limpar Filtros">
+                <img src="{{ url_for('static', filename='images/no-filter.png') }}" alt="Limpar Filtros"
+                    class="w-4 h-4">
+            </div>
+
+            <div class="flex-1 w-full">
+                <input type="text" id="cargo" placeholder="Cargo ou Tecnologia (ex: Python, Estágio C#)"
+                    class="w-full px-4 h-12 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm">
+            </div>
+
+            <button onclick="realizarBusca()"
+                class="bg-green-500 hover:bg-green-600 text-black font-semibold h-12 px-6 rounded-md shadow-sm transition active:scale-95 w-full md:w-auto shrink-0 flex items-center justify-center text-sm">
+                Buscar Vagas
+            </button>
+
+            <div class="w-full md:w-64 relative">
+                <input type="text" id="local" placeholder="Cidade, Estado ou País"
+                    class="w-full pl-4 pr-10 h-12 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm"
+                    value="Brasil">
+                <div class="absolute right-3 top-3 pointer-events-none">
+                    <img src="{{ url_for('static', filename='images/point-on-map.png') }}" alt="Local" class="w-6 h-6">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6 mt-8 items-start">
+
+            <div id="resultados" class="w-full md:w-7/12 space-y-4">
+                <p class="text-center text-gray-400">Digite o cargo desejado e clique em buscar para iniciar.</p>
+            </div>
+
+            <div id="vaga-detalhes"
+                class="w-full md:w-5/12 bg-blue-100 p-6 rounded-2xl border border-blue-200 shadow-sm sticky top-6 min-h-[400px] flex flex-col justify-center">
+                <div id="detalhes-vazio" class="text-center text-blue-800 font-medium">
+                    <p class="text-lg">Nenhuma vaga selecionada</p>
+                    <p class="text-xs text-blue-600 mt-1">Clique em um card ao lado para ver os detalhes completos e
+                        requisitos.</p>
+                </div>
+
+                <div id="detalhes-conteudo" class="hidden flex-col h-full text-black">
+                </div>
+            </div>
+
+        </div>
+
+
+        <div id="modal-filtros"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden transition-opacity">
+            <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-xl mx-4">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Filtros Avançados</h3>
+                    <button onclick="alternarModalFiltros(false)"
+                        class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                </div>
+
+                <div class="space-y-4">
+
+                    <div>
+                        <label for="empresa" class="block text-sm font-semibold text-gray-700 mb-1">Empresa
+                            Específica</label>
+                        <input type="text" id="empresa" placeholder="Ex: Google, IBM, Itaú"
+                            class="w-full p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                    </div>
+
+                    <div>
+                        <label for="tipo-contrato" class="block text-sm font-semibold text-gray-700 mb-1">Tipo de
+                            Emprego</label>
+                        <select id="tipo-contrato"
+                            class="w-full p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white">
+                            <option value="">Todos os tipos</option>
+                            <option value="FULLTIME">Tempo Integral (Efetivo)</option>
+                            <option value="CONTRACTOR">Prestador de Serviço (PJ)</option>
+                            <option value="INTERN">Estágio</option>
+                            <option value="PARTTIME">Meio Período</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="modelo" class="block text-sm font-semibold text-gray-700 mb-1">Modelo de
+                            Trabalho</label>
+                        <select id="modelo"
+                            class="w-full p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white">
+                            <option value="">Todos os modelos (Híbrido / Presencial)</option>
+                            <option value="remoto">Apenas Remoto (Home Office)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="data-post" class="block text-sm font-semibold text-gray-700 mb-1">Data de
+                            Publicação</label>
+                        <select id="data-post"
+                            class="w-full p-2.5 border rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white">
+                            <option value="all">Qualquer data</option>
+                            <option value="today">Últimas 24 horas</option>
+                            <option value="3days">Últimos 3 dias</option>
+                            <option value="week">Última semana</option>
+                            <option value="month">Último mês</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-3 border-t">
+                    <button onclick="alternarModalFiltros(false)"
+                        class="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50 transition text-sm font-medium">Cancelar</button>
+                    <button onclick="aplicarFiltrosEBuscar()"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition text-sm font-medium">Aplicar
+                        Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>
