@@ -116,7 +116,7 @@ def buscar_vagas():
     if localizacao: query_partes.append(f"em {localizacao}")
     query_final = " ".join(query_partes)
 
-    querystring = {"query": query_final, "page": "1", "num_pages": "1", "date_posted": data_publicacao}
+    querystring = {"query": query_final, "page": "1", "num_pages": "10", "date_posted": data_publicacao}
     if tipo_emprego: querystring["employment_types"] = tipo_emprego
     if modelo == "remoto": querystring["remote_jobs_only"] = "true"
 
